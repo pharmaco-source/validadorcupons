@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validador de Cupons Pro</title>
+    <title>Ativar Cupom</title>
     <style>
         body { font-family: sans-serif; background-color: #121212; color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         .container { background: #1e1e1e; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); width: 100%; max-width: 380px; text-align: center; }
         .form-group { text-align: left; margin-bottom: 15px; }
         label { font-size: 14px; color: #aaa; font-weight: bold; display: block; margin-bottom: 5px; }
-        input, textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; }
-        textarea { resize: vertical; min-height: 80px; font-family: sans-serif; }
+        input { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #333; background: #2a2a2a; color: #fff; font-size: 16px; box-sizing: border-box; }
         button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
         .btn-primary { background-color: #3b82f6; color: white; }
         .btn-success { background-color: #10b981; color: white; margin-top: 20px; }
@@ -19,16 +18,25 @@
         .valido { background-color: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
         .invalido { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
         
-        /* Estilo para a área condicional */
+        /* Estilos para os novos textos de instrução */
+        .instrucao-topo { color: #bbb; font-size: 14px; text-align: left; line-height: 1.5; margin-bottom: 20px; background-color: #252525; padding: 12px; border-radius: 6px; border-left: 4px solid #3b82f6; }
+        .instrucao-compra { color: #f59e0b; font-size: 13px; text-align: left; line-height: 1.4; margin-bottom: 15px; font-weight: 500; }
+        
         .area-confirmacao { margin-top: 25px; border-top: 1px solid #333; padding-top: 20px; display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Validar Cupom</h2>
+    <!-- Ajuste 1: Alterado para Ativar Cupom -->
+    <h2>Ativar Cupom</h2>
     
-    <!-- Campo do Cupom sempre visível -->
+    <!-- Ajuste 2: Nova mensagem acima do campo do cupom -->
+    <div class="instrucao-topo">
+        Verifique se o código está disponível. Se sim, faça a compra com desconto de 10% e informe os dados da compra.
+    </div>
+    
+    <!-- Campo do Cupom -->
     <div class="form-group">
         <label for="couponInput">Código do Cupom</label>
         <input type="text" id="couponInput" placeholder="Ex: DESCONTO10">
@@ -41,14 +49,21 @@
 
     <!-- Bloco Condicional: Só aparece se o cupom for VÁLIDO -->
     <div id="camposConfirmacao" class="area-confirmacao">
+        
+        <!-- Ajuste 5: Mensagem orientando a realizar a compra antes de salvar -->
+        <div class="instrucao-compra">
+            ℹ️ Realize a compra para informar os dados abaixo e clique em Confirmar Utilização para salvar.
+        </div>
+
         <div class="form-group">
             <label for="operatorInput">Número do Operador *</label>
             <input type="number" id="operatorInput" placeholder="Ex: 104">
         </div>
 
+        <!-- Ajuste 3: Alterado para 'Informe o número da venda', tipo mudou para input comum e placeholder vazio -->
         <div class="form-group">
-            <label for="infoInput">Informações / Observações</label>
-            <textarea id="infoInput" placeholder="Ex: Cliente utilizou na compra da loja física..."></textarea>
+            <label for="infoInput">Informe o número da venda *</label>
+            <input type="text" id="infoInput" placeholder="">
         </div>
 
         <button id="btnConfirmar" class="btn-success" onclick="confirmarUso()">Confirmar Utilização</button>
@@ -73,7 +88,6 @@
             return;
         }
 
-        // Esconde os campos e o resultado antes de fazer a busca
         resultBox.style.display = "none";
         camposConfirmacao.style.display = "none";
         btnValidar.disabled = true;
@@ -91,8 +105,6 @@
             if (data.resultado === "valido") {
                 resultBox.className = "result valido";
                 resultBox.innerText = "🟢 Cupom válido para uso";
-                
-                // Exibe os campos de Operador, Observações e o Botão de Confirmar
                 camposConfirmacao.style.display = "block";
             } else if (data.resultado === "utilizado") {
                 resultBox.className = "result invalido";
@@ -121,8 +133,17 @@
         const operador = operatorInput.value.trim();
         const informacoes = infoInput.value.trim();
 
+        // Validação obrigatória do operador
         if (!operador) {
             alert("Por favor, informe o número do operador antes de confirmar.");
+            operatorInput.focus();
+            return;
+        }
+
+        // Ajuste 4: Validação obrigatória do número da venda
+        if (!informacoes) {
+            alert("Por favor, informe o número da venda antes de confirmar.");
+            infoInput.focus();
             return;
         }
 
@@ -142,13 +163,11 @@
             const data = await response.json();
 
             if (data.resultado === "sucesso") {
-                resultBox.className = "result valido";
+                resultBox.className = "result valido"; // Corrigido para Verde
                 resultBox.innerText = "🎉 Sucesso! Cupom baixado com sucesso.";
                 
-                // Oculta novamente os campos extras pós-validação bem sucedida
                 camposConfirmacao.style.display = "none";
                 
-                // Limpa todos os inputs
                 document.getElementById("couponInput").value = "";
                 operatorInput.value = "";
                 infoInput.value = "";
