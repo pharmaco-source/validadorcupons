@@ -18,6 +18,9 @@
         .result { margin-top: 20px; padding: 12px; border-radius: 6px; font-weight: bold; display: none; }
         .valido { background-color: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
         .invalido { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+        
+        /* Estilo para a área condicional */
+        .area-confirmacao { margin-top: 25px; border-top: 1px solid #333; padding-top: 20px; display: none; }
     </style>
 </head>
 <body>
@@ -25,28 +28,31 @@
 <div class="container">
     <h2>Validar Cupom</h2>
     
-    <!-- Campo do Cupom -->
+    <!-- Campo do Cupom sempre visível -->
     <div class="form-group">
         <label for="couponInput">Código do Cupom</label>
         <input type="text" id="couponInput" placeholder="Ex: DESCONTO10">
     </div>
 
-    <!-- Novo Campo: Número do Operador -->
-    <div class="form-group">
-        <label for="operatorInput">Número do Operador</label>
-        <input type="number" id="operatorInput" placeholder="Ex: 104">
-    </div>
-
-    <!-- Novo Campo: Informações Adicionais -->
-    <div class="form-group">
-        <label for="infoInput">Informações / Observações</label>
-        <textarea id="infoInput" placeholder="Ex: Cliente utilizou na compra da loja física..."></textarea>
-    </div>
-
     <button id="btnValidar" class="btn-primary" onclick="verificarCupom()">Verificar Código</button>
 
+    <!-- Caixa de resultado do status do cupom -->
     <div id="resultBox" class="result"></div>
-    <button id="btnConfirmar" class="btn-success" style="display: none;" onclick="confirmarUso()">Confirmar Utilização</button>
+
+    <!-- Bloco Condicional: Só aparece se o cupom for VÁLIDO -->
+    <div id="camposConfirmacao" class="area-confirmacao">
+        <div class="form-group">
+            <label for="operatorInput">Número do Operador *</label>
+            <input type="number" id="operatorInput" placeholder="Ex: 104">
+        </div>
+
+        <div class="form-group">
+            <label for="infoInput">Informações / Observações</label>
+            <textarea id="infoInput" placeholder="Ex: Cliente utilizou na compra da loja física..."></textarea>
+        </div>
+
+        <button id="btnConfirmar" class="btn-success" onclick="confirmarUso()">Confirmar Utilização</button>
+    </div>
 </div>
 
 <script>
@@ -58,8 +64,8 @@
     async function verificarCupom() {
         const input = document.getElementById("couponInput");
         const resultBox = document.getElementById("resultBox");
-        const btnConfirmar = document.getElementById("btnConfirmar");
         const btnValidar = document.getElementById("btnValidar");
+        const camposConfirmacao = document.getElementById("camposConfirmacao");
 
         cupomAtual = input.value.trim();
         if (!cupomAtual) {
@@ -67,9 +73,9 @@
             return;
         }
 
-        // Reset de interface antes da busca
+        // Esconde os campos e o resultado antes de fazer a busca
         resultBox.style.display = "none";
-        btnConfirmar.style.display = "none";
+        camposConfirmacao.style.display = "none";
         btnValidar.disabled = true;
         btnValidar.innerText = "Consultando...";
 
@@ -85,7 +91,9 @@
             if (data.resultado === "valido") {
                 resultBox.className = "result valido";
                 resultBox.innerText = "🟢 Cupom válido para uso";
-                btnConfirmar.style.display = "block";
+                
+                // Exibe os campos de Operador, Observações e o Botão de Confirmar
+                camposConfirmacao.style.display = "block";
             } else if (data.resultado === "utilizado") {
                 resultBox.className = "result invalido";
                 resultBox.innerText = "🔴 Cupom já foi utilizado anteriormente";
@@ -105,6 +113,7 @@
 
     async function confirmarUso() {
         const resultBox = document.getElementById("resultBox");
+        const camposConfirmacao = document.getElementById("camposConfirmacao");
         const btnConfirmar = document.getElementById("btnConfirmar");
         const operatorInput = document.getElementById("operatorInput");
         const infoInput = document.getElementById("infoInput");
@@ -112,7 +121,6 @@
         const operador = operatorInput.value.trim();
         const informacoes = infoInput.value.trim();
 
-        // Validação simples para obrigar o preenchimento do operador
         if (!operador) {
             alert("Por favor, informe o número do operador antes de confirmar.");
             return;
@@ -135,10 +143,12 @@
 
             if (data.resultado === "sucesso") {
                 resultBox.className = "result invalido";
-                resultBox.innerText = "🎉 Sucesso! Cupom dado como baixado.";
-                btnConfirmar.style.display = "none";
+                resultBox.innerText = "🎉 Sucesso! Cupom baixado com sucesso.";
                 
-                // Limpa os campos após o sucesso
+                // Oculta novamente os campos extras pós-validação bem sucedida
+                camposConfirmacao.style.display = "none";
+                
+                // Limpa todos os inputs
                 document.getElementById("couponInput").value = "";
                 operatorInput.value = "";
                 infoInput.value = "";
